@@ -1,0 +1,220 @@
+---
+title: "HW2 - Neural Networks"
+author: "Your name"
+date: "Date of submission"
+output: 
+html_document: 
+highlight: tango
+theme: spacelab
+---
+
+```{r setup, include = FALSE}
+# DO NOT ALTER CODE IN THIS CHUNK
+
+# Note: if you have not yet installed the relevant packages, 
+# you'll need to install them with the code below
+# install.packages("tidyverse")
+# install.packages("neuralnet")
+# install.packages("here")
+
+library(tidyverse)
+library(neuralnet)
+library(here)
+```
+
+* * *
+
+#### Problem 1: 
+
+```{r perceptron-helpers}
+sigmoid <- function(x) {
+  
+}
+
+sq_error <- function(y, yhat) {
+  
+}
+
+perceptron <- function(data) {
+  
+  # separate the target y values 
+  y <- data %>%
+    select(y) %>%
+    pull()
+  
+  # add a constant 1 to the data to implement the bias neuron
+  x <- data %>%
+    select(-y) %>%
+    mutate(bias = 1)
+  
+  # make the perceptron
+  # note: the number of weights here 
+  list(input = x,
+       output = rep(0, length(y)),
+       activation = output,
+       y = y,
+       weights = rnorm(ncol(x)))
+}
+```
+
+#### Problem 2:
+
+```{r and-data}
+and_data <- tibble()
+```
+
+```{r perceptron}
+perceptron_feedforward <- function(perceptron, example) {
+  
+  return(perceptron)
+}
+
+perceptron_feedback <- function(perceptron, example, alpha) {
+  
+  return(perceptron)
+}
+
+train_perceptron <- function(perceptron, n_iterations, alpha = .1) {
+  
+}
+```
+
+```{r and-perceptron}
+
+```
+
+#### Problem 3:
+
+```{r or-perceptron}
+or_data <- tibble()
+```
+
+```{r not-x1-perceptron}
+not_x1_data <- tibble()
+```
+
+```{r xor-perceptron}
+xor_data <- tibble()
+```
+
+#### Problem 4:
+
+```{r backprop-helpers}
+sigmoid_derivative <- function(x) {
+  
+}
+
+backprop_network <- function(data) {
+  
+  # separate the target y values 
+  y <- data %>%
+    select(y) %>%
+    pull()
+  
+  # add a constant 1 to the data to implement the bias neuron
+  x <- data %>%
+    select(-y) %>%
+    mutate(bias = 1)
+  
+  # make the backprop network
+  # you want two layers of weights, and both output and activation for
+  # the hidden and output layer.
+  list(input = x,
+       y = y)
+}
+```
+
+```{r backprop-network}
+
+backprop_feedforward <- function(network, example) {
+  
+  return(network)
+}
+
+backprop_feedback <- function(network, example, alpha) {
+  
+  return(network)
+}
+
+train_backprop_net <- function(network, n_iterations, alpha = .1) {
+  
+}
+```
+
+```{r backprop-xor}
+
+```
+
+#### Problem 5:
+
+```{r neuralnet-xor}
+#xor_net <- neuralnet(y ~ ., data = xor_data, hidden = 2, linear.output = FALSE)
+#plot(xor_net)
+```
+
+#### Problem 6:
+```{r mnist-load}
+mnist_train <- read_csv(here("data/mnist_train.csv"))
+mnist_test <- read_csv(here("data/mnist_test.csv"))
+
+gather_mnist <- function(df) {
+  df_gathered <- df %>%
+    mutate(instance = row_number()) %>%
+    gather(pixel, value, -label, -instance) %>%
+    tidyr::extract(pixel, "pixel", "(\\d+)", convert = TRUE) %>%
+    mutate(pixel = pixel - 1,
+           x = pixel %% 10,
+           y = pixel %/% 10)
+}
+
+gathered_train <- gather_mnist(mnist_train)
+```
+
+```{r show-mnist}
+gathered_train %>%
+  group_by(label) %>%
+  filter(instance == last(instance)) %>%
+  ggplot(aes(x = x, y = y, fill = value)) +
+  facet_wrap(~ label) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "black") +
+  theme_void() +
+  theme(legend.position = "none", strip.text = element_blank())
+```
+
+```{r mnist-prediction}
+mode <- function(codes){
+  which.max(tabulate(codes))
+}
+
+prediction_error <- function(network, data, by_digit = FALSE) {
+  
+  predicted <- predict(network, data) %>%
+    as.tibble() %>%
+    mutate(example = 1:n()) %>%
+    pivot_longer(cols = -example, names_to = "digit") %>%
+    group_by(example) %>%
+    filter(value == max(value)) %>%
+    ungroup() %>%
+    mutate(digit = as.numeric(str_remove(digit, "V")) - 1) %>%
+    select(-value) %>%
+    left_join(data %>% 
+                select(label) %>%
+                mutate(example = 1:n()),
+              by = "example")
+  
+  if(by_digit) {
+    predicted <- predicted %>%
+      group_by(label)
+  }
+  
+  predicted %>%
+    mutate(correct = label == digit) %>%
+    summarise(correct = mean(correct), 
+              most_frequent_digit = mode(digit))
+}
+```
+
+```{r train-mnist}
+
+```
